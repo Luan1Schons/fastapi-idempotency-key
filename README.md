@@ -70,6 +70,7 @@ Without server-side idempotency safeguards:
 ## 📊 Architecture & Flow
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 flowchart TD
     Start(["Incoming HTTP Request"]) --> CheckHeader{"Has Idempotency-Key?"}
 
@@ -88,10 +89,10 @@ flowchart TD
     ReleaseLock --> ReturnError["Return 5xx Error Response"]
 
     TryLock -- "Key Exists: COMPLETED" --> VerifyFP{"Fingerprint Matches?"}
-    VerifyFP -- "Yes" --> ReplayCached["Replay Cached Response<br/>+ Header: Idempotency-Replayed: true"]
+    VerifyFP -- "Yes" --> ReplayCached["Replay Cached Response<br/>Header: Idempotency-Replayed = true"]
     VerifyFP -- "No (Payload Mismatch)" --> RejectMismatch["Return HTTP 422 Unprocessable Entity"]
 
-    TryLock -- "Key Exists: IN_PROGRESS" --> CheckTimeout{"timeout > 0 configured?"}
+    TryLock -- "Key Exists: IN_PROGRESS" --> CheckTimeout{"timeout configured?"}
     CheckTimeout -- "No / Expired" --> ReturnConflict["Return HTTP 409 Conflict<br/>(Request In Progress)"]
     CheckTimeout -- "Yes (Waits for Lock)" --> AwaitComplete["Wait & Replay on Completion"]
     AwaitComplete --> ReplayCached
