@@ -2,11 +2,11 @@
 
 # FastAPI Idempotency Key 🛡️
 
-[![CI Status](https://github.com/fastapi-idempotency-key/fastapi-idempotency-key/actions/workflows/test.yml/badge.svg)](https://github.com/fastapi-idempotency-key/fastapi-idempotency-key/actions/workflows/test.yml)
+[![CI Status](https://github.com/Luan1Schons/fastapi-idempotency-key/actions/workflows/test.yml/badge.svg)](https://github.com/Luan1Schons/fastapi-idempotency-key/actions/workflows/test.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/fastapi-idempotency-key.svg?color=blue)](https://pypi.org/project/fastapi-idempotency-key/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/fastapi-idempotency-key.svg)](https://pypi.org/project/fastapi-idempotency-key/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/fastapi-idempotency-key/fastapi-idempotency-key)
+[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/Luan1Schons/fastapi-idempotency-key)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Type Checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](https://mypy-lang.org/)
 
