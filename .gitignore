@@ -38,8 +38,12 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Environments
+# Environments & Secrets
 .env
+.env*
+.pypirc
+*.token
+*.key
 .venv
 env/
 venv/
