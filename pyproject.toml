@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastapi-idempotency-key"
+version = "0.1.0"
+description = "Stripe-grade Idempotency-Key support for FastAPI and Starlette APIs. Exactly-once execution with atomic distributed locks, request fingerprinting, and pluggable backends (Memory, SQLite, Redis)."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "FastAPI Idempotency Key Contributors" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Framework :: FastAPI",
+    "Typing :: Typed",
+]
+dependencies = [
+    "starlette>=0.27.0",
+]
+
+[project.optional-dependencies]
+redis = ["redis>=5.0.0"]
+sqlite = ["aiosqlite>=0.19.0"]
+all = ["redis>=5.0.0", "aiosqlite>=0.19.0"]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "httpx",
+    "fastapi",
+    "black",
+    "flake8",
+    "mypy",
+    "redis",
+    "aiosqlite",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["fastapi_idempotency_key*"]
+
+[tool.setuptools.package-data]
+fastapi_idempotency_key = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+    "raise NotImplementedError",
+]
+show_missing = true
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+
+[[tool.mypy.overrides]]
+module = ["redis.*", "aiosqlite.*", "uvicorn"]
+ignore_missing_imports = true

@@ -1,0 +1,52 @@
+name: Test and Quality Gates
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e ".[dev]"
+
+      - name: Check code formatting (Black)
+        run: |
+          black --check fastapi_idempotency_key tests examples
+
+      - name: Check style & linting (Flake8)
+        run: |
+          flake8 fastapi_idempotency_key tests examples
+
+      - name: Type check (Mypy)
+        run: |
+          mypy fastapi_idempotency_key tests
+
+      - name: Run test suite with coverage
+        run: |
+          pytest --cov=fastapi_idempotency_key --cov-report=term-missing --cov-report=xml
