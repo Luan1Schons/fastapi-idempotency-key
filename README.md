@@ -13,50 +13,96 @@
 **Stripe-grade `Idempotency-Key` engine for FastAPI and Starlette APIs.**<br>
 Guaranteed exactly-once execution, deterministic SHA-256 fingerprinting, atomic distributed locks, and pluggable backends (Memory, SQLite, Redis).
 
+<p align="center">
+  <b><a href="README.md">English</a></b> • <b><a href="README.pt-BR.md">Português (Brasil)</a></b>
+</p>
+
 </div>
 
 ---
 
 ## 📖 Table of Contents
 
-- [The Problem: Why Idempotency Matters](#-the-problem-why-idempotency-matters)
-- [How It Works](#-how-it-works)
-- [Key Features](#-key-features)
-- [Architecture & Flow](#-architecture--flow)
-- [Installation](#-installation)
-- [Quick Start](#-quick-start)
+- [💥 The Problem: Why Idempotency Matters](#-the-problem-why-idempotency-matters)
+- [🛡️ The Solution: Stripe-Grade Idempotency Engine](#️-the-solution-stripe-grade-idempotency-engine)
+- [🎯 Real-World Applications](#-real-world-applications)
+- [⚙️ How It Works Under the Hood](#️-how-it-works-under-the-hood)
+- [📊 Architecture & Flow](#-architecture--flow)
+- [✨ Key Features](#-key-features)
+- [📦 Installation](#-installation)
+- [🚀 Quick Start](#-quick-start)
   - [1. Global ASGI Middleware](#1-global-asgi-middleware)
   - [2. Route-Level Decorator](#2-route-level-decorator)
-- [Storage Backends Comparison](#-storage-backends-comparison)
+- [🗄️ Storage Backends Comparison](#️-storage-backends-comparison)
   - [MemoryBackend](#1-memorybackend)
   - [SQLiteBackend](#2-sqlitebackend)
   - [RedisBackend](#3-redisbackend)
-- [Configuration & API Reference](#-configuration--api-reference)
+- [🛠️ Configuration & API Reference](#️-configuration--api-reference)
   - [IdempotencyMiddleware](#idempotencymiddleware)
   - [@idempotent Decorator](#idempotent-decorator)
-- [Error Handling & HTTP Status Codes](#-error-handling--http-status-codes)
-- [Contributing & Testing](#-contributing--testing)
-- [License](#-license)
+- [🚨 Error Handling & HTTP Status Codes](#-error-handling--http-status-codes)
+- [🧪 Contributing & Testing](#-contributing--testing)
+- [📄 License](#-license)
 
 ---
 
 ## 💥 The Problem: Why Idempotency Matters
 
-In distributed systems, networks are inherently unreliable. When clients interact with payment gateways, order processing systems, or webhook dispatchers, network partitions, socket timeouts, or retry mechanisms can duplicate incoming mutating HTTP requests (`POST`, `PUT`, `PATCH`).
+In distributed systems, networks are inherently unreliable. Consider a critical payment endpoint: `POST /api/v1/checkout`.
 
-Without server-side idempotency safeguards:
-- **Double Charges**: A customer clicks "Pay" twice or a mobile connection drops, causing payment processors to execute duplicate charges.
-- **Duplicate Orders**: An e-commerce service creates multiple fulfillment tickets for a single checkout.
-- **Webhook Storms**: Payment providers (Stripe, Adyen, PayPal) retry webhooks until an HTTP 200 is acknowledged, causing repeated side effects.
+```
+[Client App]                     [FastAPI Server]                 [Payment Gateway / DB]
+     |                                  |                                    |
+     |---- 1. POST /checkout ---------->|                                    |
+     |    (Header: Idempotency-Key)     |---- 2. Charge $500 --------------->|
+     |                                  |<--- 3. Charge Successful ----------|
+     |                                  |
+     |  x-- 4. Network drops! ---------x|  (Client never receives HTTP 200)
+     |     (or 4G timeout occurs)
+     |
+     |---- 5. Retry / Double-click! --->|
+     |    (Axios/SDK auto-retry)        |---- 6. DUPLICATE CHARGE! --------->|  💥 DISASTER!
+```
 
-`fastapi-idempotency-key` implements the [IETF HTTP Idempotency-Key specification](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/) and Stripe's battle-tested idempotency model. It turns your mutating endpoints into resilient, replayable operations with zero architectural friction.
+### The Real-World Breakdown:
+1. A customer clicks **"Pay Now"**.
+2. The server processes the charge ($500.00 debited from the card) and saves the order.
+3. Right before the server can return `HTTP 200 OK`, the client's mobile connection drops for 200ms, or an HTTP gateway timeout triggers.
+4. The client's frontend (or SDK, Axios, React Query) assumes the request failed and **retries automatically**. Or the user panics and clicks "Pay" again.
+5. **The Disaster**: Without server-side idempotency safeguards, the server executes the route handler again, **charging the customer a second time ($1,000 total)** and creating duplicate fulfillment records.
+
+> Under the HTTP specification, methods like `GET`, `PUT`, and `DELETE` are naturally idempotent. But **`POST` is not**. Without server-side idempotency, duplicate side effects, double billings, and race conditions are guaranteed to happen in production.
 
 ---
 
-## ⚙️ How It Works
+## 🛡️ The Solution: Stripe-Grade Idempotency Engine
 
-1. **Request Interception**: Incoming requests are checked for an `Idempotency-Key` header (e.g. `Idempotency-Key: e8a78bf5-4f40-42bf-9076-2f6cfd939634`).
-2. **Fingerprint Calculation**: A deterministic SHA-256 hash is computed across the HTTP method, normalized URL path, sorted query parameters, and raw request body.
+`fastapi-idempotency-key` implements the official [IETF HTTP Idempotency-Key specification](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/) and Stripe's battle-tested idempotency model.
+
+When the client attaches an `Idempotency-Key` header (e.g., a client-generated UUID v4):
+
+1. **First Arrival**: An atomic lock is claimed. Your FastAPI endpoint executes normally. The status code (`200 OK`), response headers, and response payload are atomically cached with a configurable TTL.
+2. **Subsequent Retries / Duplicate Requests**: The endpoint **does not run again**. The cached response is returned in `< 1ms` with an `Idempotency-Replayed: true` header. Zero duplicate charges, zero side effects.
+3. **Race Condition Protection**: If two requests with the same key arrive at the exact same millisecond, the first claims the lock and the second is immediately rejected with **`HTTP 409 Conflict`** (or waits for completion if `timeout` is configured).
+4. **Payload Tampering Protection**: If a client reuses an existing key with a different body or query params, it is blocked with **`HTTP 422 Unprocessable Entity`**.
+5. **Automatic Fault Recovery**: If your server raises an unhandled exception or returns a 5xx error, the lock is automatically released so the client can safely retry without waiting for the TTL to expire.
+
+---
+
+## 🎯 Real-World Applications
+
+- 💳 **Fintechs & Payment Gateways**: Credit card authorizations, instant PIX / wire transfers, invoice generation, and refunds.
+- 🛍️ **E-Commerce & Marketplaces**: Order checkout, inventory reservation, and single-use promo code redemption.
+- ⚡ **Webhook Ingestion**: Third-party providers (Stripe, GitHub, Shopify, Mercado Pago) retry delivery 5–10 times until receiving HTTP 200. This library guarantees your consumer processes each event exactly once.
+- 📨 **Microservices & Event Queues**: Distributed services consuming message queues (Kafka, RabbitMQ, Celery) operating under *at-least-once delivery* guarantees.
+- 📱 **Mobile Applications**: Unstable cellular connections (tunnels, elevators, roaming) where network requests disconnect mid-flight.
+
+---
+
+## ⚙️ How It Works Under the Hood
+
+1. **Request Interception**: Incoming requests are inspected for the `Idempotency-Key` header (e.g. `Idempotency-Key: e8a78bf5-4f40-42bf-9076-2f6cfd939634`).
+2. **Deterministic Fingerprinting**: A deterministic SHA-256 hash is computed over the HTTP method, normalized URL path, sorted query parameters, and raw request body.
 3. **Atomic Mutual Exclusion**: An atomic lock is claimed in the storage backend (Memory, SQLite WAL, or Redis Lua script).
 4. **Three Execution Outcomes**:
    - **First Arrival (Lock Acquired)**: Downstream FastAPI route executes normally. The completed HTTP status code, response headers, and response body are atomically cached with a TTL.
@@ -102,7 +148,7 @@ flowchart TD
 
 ## ✨ Key Features
 
-- **Strict Exactly-Once Semantics**: Completely eliminates race conditions and duplicate operations under high concurrency.
+- **Strict Exactly-Once Semantics**: Eliminates duplicate operations and race conditions under heavy concurrent load.
 - **Atomic Concurrency Protection**: High-concurrency protection via `asyncio.Lock` (Memory), atomic transactions in WAL mode (SQLite), or single-roundtrip atomic Lua scripts (Redis).
 - **Deterministic SHA-256 Fingerprinting**: Detects request tampering, altered bodies, or mismatched query parameters.
 - **Zero-Loss Replay Engine**: Transparently captures and replays status codes, custom headers, JSON payloads, binary blobs, and `StreamingResponse` objects.
@@ -116,7 +162,7 @@ flowchart TD
 ## 📦 Installation
 
 ```bash
-# Core package (in-memory backend included)
+# Core package (in-memory backend included, zero extra dependencies)
 pip install fastapi-idempotency-key
 
 # With Redis backend support
@@ -159,20 +205,20 @@ async def create_payment(payment: dict):
 
 Test it with `curl`:
 ```bash
-# First request: Executes handler
+# 1. First request: Executes handler normally
 curl -i -X POST http://localhost:8000/payments \
   -H "Idempotency-Key: pay_unique_987" \
   -H "Content-Type: application/json" \
   -d '{"amount": 100}'
 
-# Second request with same key: Replayed immediately from cache
+# 2. Second request with same key: Replayed immediately from cache (<1ms)
 curl -i -X POST http://localhost:8000/payments \
   -H "Idempotency-Key: pay_unique_987" \
   -H "Content-Type: application/json" \
   -d '{"amount": 100}'
 # -> Returns HTTP 200 with header: "Idempotency-Replayed: true"
 
-# Tampered request with same key but different amount:
+# 3. Tampered request with same key but altered payload:
 curl -i -X POST http://localhost:8000/payments \
   -H "Idempotency-Key: pay_unique_987" \
   -H "Content-Type: application/json" \
@@ -307,7 +353,7 @@ We uphold strict quality gates with 99%+ test coverage and comprehensive static 
 
 ```bash
 # Clone the repository
-git clone https://github.com/fastapi-idempotency-key/fastapi-idempotency-key.git
+git clone https://github.com/Luan1Schons/fastapi-idempotency-key.git
 cd fastapi-idempotency-key
 
 # Create and activate virtual environment
