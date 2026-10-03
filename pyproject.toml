@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fastapi-idempotency-key"
-version = "0.1.0"
+version = "0.1.1"
 description = "Stripe-grade Idempotency-Key support for FastAPI and Starlette APIs. Exactly-once execution with atomic distributed locks, request fingerprinting, and pluggable backends (Memory, SQLite, Redis)."
 readme = "README.md"
 license = "MIT"
