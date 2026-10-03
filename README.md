@@ -377,3 +377,11 @@ mypy fastapi_idempotency_key tests examples
 ## 📄 License
 
 This project is licensed under the terms of the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+
+If this project saved you from a double charge (or might one day), consider giving it a ⭐ on [GitHub](https://github.com/Luan1Schons/fastapi-idempotency-key). It helps other developers find it!
+
+</div>

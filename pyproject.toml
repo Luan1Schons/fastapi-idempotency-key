@@ -9,7 +9,20 @@ description = "Stripe-grade Idempotency-Key support for FastAPI and Starlette AP
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-authors = [{ name = "FastAPI Idempotency Key Contributors" }]
+authors = [{ name = "Luan Schons" }]
+keywords = [
+    "fastapi",
+    "starlette",
+    "asgi",
+    "idempotency",
+    "idempotency-key",
+    "idempotent",
+    "middleware",
+    "exactly-once",
+    "distributed-lock",
+    "redis",
+    "payments",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -20,11 +33,21 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Framework :: FastAPI",
+    "Framework :: AsyncIO",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
 dependencies = [
     "starlette>=0.27.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Luan1Schons/fastapi-idempotency-key"
+Repository = "https://github.com/Luan1Schons/fastapi-idempotency-key"
+Documentation = "https://github.com/Luan1Schons/fastapi-idempotency-key#readme"
+Issues = "https://github.com/Luan1Schons/fastapi-idempotency-key/issues"
+Changelog = "https://github.com/Luan1Schons/fastapi-idempotency-key/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 redis = ["redis>=5.0.0"]
