@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="fastapi-idempotency-key logo">
+  <defs>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#05998b"/>
+      <stop offset="1" stop-color="#03685e"/>
+    </linearGradient>
+  </defs>
+  <!-- shield -->
+  <path d="M128 14 L224 50 V118 C224 178 184 222 128 242 C72 222 32 178 32 118 V50 Z"
+        fill="url(#shield)"/>
+  <path d="M128 30 L210 60.5 V118 C210 169 176 207 128 225 C80 207 46 169 46 118 V60.5 Z"
+        fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width="3"/>
+  <!-- key -->
+  <g fill="#ffffff">
+    <path fill-rule="evenodd"
+          d="M96 76 a34 34 0 1 1 0 68 a34 34 0 1 1 0 -68 Z M96 96 a14 14 0 1 0 0 28 a14 14 0 1 0 0 -28 Z"/>
+    <rect x="124" y="101" width="72" height="18" rx="4"/>
+    <rect x="160" y="110" width="14" height="33" rx="3"/>
+    <rect x="182" y="110" width="14" height="41" rx="3"/>
+  </g>
+  <!-- "exactly once" badge -->
+  <circle cx="176" cy="186" r="26" fill="#ffffff"/>
+  <text x="176" y="196" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, monospace"
+        font-size="27" font-weight="800" fill="#03685e">1×</text>
+</svg>

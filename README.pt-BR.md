@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/Luan1Schons/fastapi-idempotency-key/main/docs/assets/logo.svg" alt="fastapi-idempotency-key logo" width="140">
+
 # FastAPI Idempotency Key 🛡️
 
 [![CI Status](https://github.com/Luan1Schons/fastapi-idempotency-key/actions/workflows/test.yml/badge.svg)](https://github.com/Luan1Schons/fastapi-idempotency-key/actions/workflows/test.yml)
@@ -16,6 +18,8 @@ Execução garantida exatamente uma vez (*exactly-once*), fingerprinting determi
 <p align="center">
   <b><a href="README.md">English</a></b> • <b><a href="README.pt-BR.md">Português (Brasil)</a></b>
 </p>
+
+<img src="https://raw.githubusercontent.com/Luan1Schons/fastapi-idempotency-key/main/docs/assets/demo.gif" alt="Demo: uma requisição repetida reproduz a resposta original em vez de cobrar duas vezes" width="800">
 
 </div>
 
